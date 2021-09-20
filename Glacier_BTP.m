@@ -61,6 +61,14 @@ Ts1 = Ta + ((1-A)*Rs + e*Rl - e*B*(Ta + 273.2)^4 - le*da*C*U*(1-rh)*q*Ta + Hg)/(
 
 Rn = (1-A)*Rs + e*Rl - e*B*(Ts + 273.2)^4;
 
+Ts0 = @Surface_Temp; %with Hg = 0
+Hg = @Heat_Into_Glacier; %with Ts
+Ts1 = @Surface_Temp; %with obtained Hg
+while(abs(Ts1 - Ts0) >= 0.1)
+    Hg = @Heat_Into_Glacier;
+    Ts0 = Ts1; %1st loop Ts
+    Ts1 = @Surface_Temp; %2nd loop Ts
+end
 
 
 
