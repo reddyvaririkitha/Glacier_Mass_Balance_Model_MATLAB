@@ -31,3 +31,4 @@ function Hg = Heat_Into_Glacier(ds,A,Rs,Ts)
     %elseif no water in snow
     % then integration formula for Hg
     end
+end
