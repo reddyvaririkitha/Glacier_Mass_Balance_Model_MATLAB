@@ -19,4 +19,10 @@ function Ts = Surface_Temp(Ta,A,Rs,e,Rl,da,U,rh,q,Hg,G_q)
     Ts = Ta + ((1-A)*Rs + e*Rl - e*B*(Ta + 273.2)^4 - le*da*C*U*(1-rh)*q*Ta + Hg)/(4*e*B*(Ta + 273.2)^3 + (G_q*le + ca)*da*C*U);
 end
 
-%function Hg = Heat_Into_Glacier()
+function Hg = Heat_Into_Glacier(ds,A,Rs,Ts)
+    %if Ts = 0
+    %Hg = 0
+    %else if Ts<0
+    % Hg = -Ks*Ts/bs
+    %else if no water in snow
+    % then integration formula for Hg
