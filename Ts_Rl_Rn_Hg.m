@@ -23,11 +23,11 @@ function Ts = Surface_Temp(Ta,A,Rs,e,Rl,da,U,rh,q,Hg,G_q)
 end
 
 function Hg = Heat_Into_Glacier(ds,A,Rs,Ts)
-    if Ts = 0
-        Hg = 0
+    if Ts == 0
+        Hg = 0;
     elseif Ts<0
-        Ks = Snow_Thermal_Conductivity(ds)
-        Hg = -Ks*Ts/bs
+        Ks = Snow_Thermal_Conductivity(ds);
+        Hg = -Ks*Ts/bs;
     %elseif no water in snow
     % then integration formula for Hg
     end
