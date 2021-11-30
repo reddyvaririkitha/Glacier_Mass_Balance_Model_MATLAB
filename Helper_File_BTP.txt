@@ -1,0 +1,146 @@
+There are 2 different files for 2 different outputs.
+
+1.Specific_Input_and_Specific_Output.m :-
+
+This file is used to get the value of specific run off and surface temperature of glacier for a specific value of albedo.
+This also gives the variation of snow and ice temperatures with depth into the glacier and during the duration of observation.
+Input - Albedo
+Output - Runoff, plots of temperature of snowlayer and ice layer with depth and duration of observation.
+
+2.Sensitivity_output_code.m :- 
+
+This file is for the sensitivity analysis of the model by varying albedo.
+Here the variation of surface temperature of glacier and runoff for different values of albedo is obtained.
+Also sensitivity plots of Runoff and Surface temperature vs albedo are obtained.
+Albedo varies from 1 (pure snow) to 0.5 (extremely polluted snow)
+Output - Sensitivity plots ie, Surface temperature vs Albedo and Runoff vs Albedo
+
+Both the files have same code with very slight changes which lead to different outputs.
+
+The model which is coded here is taken from Fujita and Ageta paper- Glacier Mass Balance model.
+
+Notations:-
+
+% CONSTANTS
+
+bi  = 0.05;            % thickness interval of ice for heat conduction and irradiance absorption (m)
+bs  = 0.1;             % thickness interval of snow for heat conduction and irradiance absorption (m)
+C   = 0.002;           % bulk coefficient for sensible and latent heat
+ca  = 1006;            % specific heat of air (J/kg-K)
+ci  = 2100;            % specific heat of ice (J/kg-K)
+le  = 2.50*10^6;       % latent heat of evaporation of ice (J/kg)
+lf  = 0.334*10^5;      % latent heat of fusion of ice (J/kg)
+mui = 10;              % extinction coefficient of ice (/m) 
+mus = 0;               % extinction coefficient of snow (/m)
+B   = 5.67*10^-8;      % stefan-boltzmann constant (W/m^2-K^4)
+di  = 900;             % density of ice (kg/m^3)
+
+% Observed data from Various Citations (mainly from Fujita and Ageta Paper) 
+
+Ta    = -10.27;        % Air temperature (degree Celcius)
+rh    = 0.779;         % Relative Humidity
+Rs    = 280;           % Observed downward shortwave radiation (W/m^2)
+U     = 4.1;           % Wind speed (m/s)
+Pp    = 670;           % Daily precipitaion (mm.w.e.d^-1)
+e     = 0.91;          % Emissivity of snow/ice surface
+Rl    = 307;           % Downward longwave radiation
+da    = 1.35;          % Density of air (kg/m^3) from Fujita and Ageta Paper
+q     = 0.014;         % Saturated specific humidity- from kondo paper
+G_q   = 1;             % assumption- specific humidity linearly varies with temperature 
+ds    = 400;           % density of snow (kg/m^3)from Fujita and Ageta Paper
+
+t     = linspace(0, 86400, 3600);     % duration of the observation, taken as 1 day = 86400s, divided into 3600 divisions
+xsnow = linspace(0, 0.75, 50);        % snow layer thickness (m)
+xice  = linspace(0, 19.25, 1300);     % ice layer thickness (m)
+
+% main input- Albedo = A - taken in Specific_Input_and_Specific_Output.m
+%-----------------------------------Note----------------------------------%
+% For sensitivity analysis, the value of albedo is varied from 1 to 0.5 with
+% a diffference of 0.05 to obtain surface temperature of glacier and runoff
+% variation withchange in albedo
+
+%---------------------------------Literature------------------------------%
+
+% mi, mi1 = Mass of water due to melting of ice (kg) (both mi and mi1)
+% mi0 = Initial Mass of water due to melting of ice (kg)
+
+% Hg  = Heat of into glacier (W/m^2)
+% Hg0 = Initial Heat of into glacier (W/m^2)
+
+% Ts, Ts1 = Surface temperature of glacier (degree celcius)
+% Ts0 = Initial Surface temperature of glacier (degree celcius)
+
+% Fs = Mass of superimposed ice on ice surface below snow (mm.w.e)
+% Fc = Mass of water that is refrozen within snow layer (mm.w.e)
+% Fc_capillary = Mass of capillary water that is refrozen within wet snow(mm.w.e)
+
+% Pr = Rainfall (mm.w.e.d^-1)
+% Ps = Snowfall (mm.w.e.d^-1)
+% DS = Runoff   (mm.w.e.d^-1)
+
+mi0 = 0; %initially there won't be any melt water ie, in the initial stage, ice won't melt
+
+Hg0 = 0; % Initial Heat transfer into the glacier (W/m^2)
+
+
+%--------------------------------Functions--------------------------------%
+
+1. Surface_Temp(A, Rs, Rl, e, Ta, da, U, rh, q, G_q, Hg) - Returns the value of surface temperature in degree Celcius
+
+2. Melted_ice(Ts, A, Rs, Rl, e, da, U, Ta, rh, q, Hg) - Return the value of ice that is melted in the glacier in mm.w.e. Uses Heat equation for finding Hm and then finds mi.
+
+3. Heat_Into_Glacier(mi, miprev, Ts, t, ds, xsnow, xice) - Returns the value of Hg = heat into the glacier in W/m^2
+	Has 3 cases:-
+
+    	if mi == 0 || Ts<0 % if no ice is melted ie, when surface temperature is negative
+
+        	integration of the temperature variation of snow with limits of depth of snowlayer- from snow-ice interface to glacier surface and 
+	        integration of the temperature variation of snow with limits of depth of snowlayer- from critical depth - zc(from Fujita paper) to snow-ice interface are used
+	
+	elseif mi == 0 || Ts == 0 % if no ice is melted but surface temperature = 0 degree celcius
+        	Hg = 0;
+	
+	elseif Ts<0 && mi>0
+	        Ks = Snow_Thermal_Conductivity(ds);
+        	Hg = -Ks*Ts/bs;
+
+4. Net_Radiation(A, Rs, Rl, e, Ts) - Returns net radiation (Rn) in W/m^2 to the function - Melted_ice using albedo.
+
+5. Sensible_heat(da, U, Ta, Ts) - Returns Sensible heat (Hs) in W/m^2 to the function - Melted_ice
+
+6. Latent_Heat_Flux(da, U, rh, q, Ta, Ts) - Returns Latent heat (Hl) in W/m^2 to the function - Melted_ice
+
+7. Superimposed_ice(ds, xice) - Returns Fs = amount of superimposed ice on ice layer below snow layer in mm.w.e uses integration of the temperature variation of snow with limits of depth of snowlayer- from snow-ice interface to glacier surface
+
+8. Mass_of_Refrozen_Capillary_Water(ds, Ts) - Returns Fc_capillary =  Mass of capillary water that is refrozen within wet snow(mm.w.e)
+
+9. Mass_of_Snow_Percolated_Water(xsnow, t, ds) - Returns Fc = Mass of water that is refrozen within snow layer (mm.w.e)
+
+10. Snow_Temperature(ds, xsnow, t, Ts) - Returns the variation of temperature of snow layer with time and depth. Partial differential equation of snow is solved here
+
+11. temp_var_snow(x,t,u,dudx) - heat variation in snow
+
+12. snow_ic() - initial conditions of snow - Returns initial conditions of the differential question to the function
+
+13. snow_bc(xl,ul,xr,ur,t,Ts) - boundary conditions of snow - Returns left and right boundary conditions of the differential question to the function Snow_Temperature(ds, xsnow, t, Ts) for pde
+
+14. Ice_Temperature(xice, t) - Returns the variation of temperature of ice layer with time and depth upto critical depth (zc). Partial differential equation of snow is solved here
+
+15. temp_var_ice(x,t,u,dudx) - heat variation in ice
+
+16. ice_ic() - initial conditions of ice - Returns initial conditions of the differential question to the function
+
+17. ice_bc(xl,ul,xr,ur,t) - boundary conditions of ice - Returns left and right boundary conditions of the differential question to the function Ice_Temperature(ds, xsnow, t, Ts) for pde
+
+18.Snow_Thermal_Conductivity(ds) - Returns the thermal conductivity of snow in (W/mK)
+
+19. Precipitations(Pp, Ta) - Returns the rainfall and snowfall in mm.w.e/d. Pr = Rainfall, Ps = Snowfall
+
+%--------------------------------Flow of the code--------------------------------%
+Albedo is the main input to the code. Through the heat balance equation, mass of melted ice, Hg and Ts are found iteratively in a loop until the difference of surface temperatures of 2 loops is less than 0.01 degree celcius.
+After loop is terminated, we get the final surface temperature, mass balance equation is used to find if any water is refrozen based on the obtained surface temperature. Also the precipitation- rainfall and snowfall are also computed.
+Then from all the obtained values - mass of melted ice, precipitation and refrozen water, runoff is found.
+Also the variation of temperature with depth of glacier and duration of observation time are plotted.
+These values of surface temperature and runoff are obtained for different values of albedo.
+
+
